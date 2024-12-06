@@ -1,0 +1,47 @@
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100vh;
+      width: 100vw;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      display: grid;
+      place-content: center;
+    }
+  
+pan-zoom {
+  touch-action: none;
+  width: min(100vw, 480px);
+  background-color: #ddd;
+  
+  aspect-ratio: 480 / 800;
+}
+
+pan-zoom[src] + label {
+  display: none;
+}
+
+pan-zoom:not([src]) {
+  display: none;
+  & + label {
+    width: min(100vw, 480px);
+    aspect-ratio: 480 / 800;
+    background: #cdf;
+    
+    display: grid;
+    place-content: center;
+    font-family: sans-serif;
+    font-size: 2em;
+    
+    input {
+      display: none;
+    }
+  }
+}
