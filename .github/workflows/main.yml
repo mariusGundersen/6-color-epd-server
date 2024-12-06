@@ -30,7 +30,7 @@ jobs:
 
       # Step 5: Build Docker image
       - name: Build Docker Image
-        run: docker build -t epd-server .
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/epd-server .
 
       # Step 6: Optional: Log in to Docker Hub and push Docker image
       # Uncomment these steps if you want to push the Docker image to Docker Hub
