@@ -1,0 +1,3 @@
+[[r2_buckets]]
+binding = 'BUCKET' # <~ valid JavaScript variable name
+bucket_name = '6-color-epd'
