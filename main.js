@@ -15,7 +15,9 @@ document.querySelector("input[type=file]").addEventListener('change', e => {
 document.querySelector('button').addEventListener('click', async e => {
     e.currentTarget.disabled = true;
     var data = new FormData()
-    data.append('file', input.files[0]);
+    const blob = await new Promise(res => document.querySelector('pan-zoom').canvas.toBlob(res, 'image/jpeg'));
+    
+    data.append('file', );
 
     await fetch('/upload', {
         method: 'POST',

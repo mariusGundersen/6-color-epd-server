@@ -57,6 +57,10 @@ div {
 pan-zoom {
   touch-action: none;
   background-color: #ddd;
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 pan-zoom[src] {
