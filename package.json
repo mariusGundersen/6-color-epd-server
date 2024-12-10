@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "dev": "wrangler pages dev ."
+    "dev": "wrangler pages dev . --port 8786"
   },
   "keywords": [],
   "author": "",
