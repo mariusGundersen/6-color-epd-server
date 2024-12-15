@@ -1,6 +1,11 @@
 {
   "short_name": "EPD",
   "name": "EPD image upload",
+  "icons":[
+    {
+      "src": "/icon.svg"
+    }
+  ],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#ffffff",
