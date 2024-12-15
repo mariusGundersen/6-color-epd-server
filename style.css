@@ -4,8 +4,8 @@
 
 html,
 body {
-  height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100dvw;
   overflow: hidden;
 }
 
@@ -28,15 +28,15 @@ div {
   pan-zoom,
   label {
     aspect-ratio: 480 / 800;
-    max-height: 100vh;
-    max-width: 100vw;
+    max-height: 100dvh;
+    max-width: 100dvw;
 
     @media (max-aspect-ratio: 480/800) {
-      width: 100vw;
+      width: 100dvw;
     }
 
     @media (min-aspect-ratio: 480/800) {
-      height: calc(100vh - 32px);
+      height: calc(100dvh - 32px);
     }
   }
 
