@@ -1,0 +1,11 @@
+{
+  "short_name": "EPD",
+  "name": "EPD image upload",
+  "icons": [
+    
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#333"
+}
