@@ -7,9 +7,10 @@ export async function onRequest({ request, env }) {
   await env.KV.put(Date.now(), JSON.stringify({
     ip: request.headers.get('CF-Connecting-IP'),
     status: object ? object.body ? 200 : 304 : 404,
-    key: object?.key
+    key: object?.key,
+    batery: request.headers.get('x-battery-voltage'),
   }));
-  
+
   if (!object) {
     return new Response("Object Not Found", { status: 404 });
   }
