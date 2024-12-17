@@ -8,7 +8,11 @@ export async function onRequest({ request, env }) {
     ip: request.headers.get('CF-Connecting-IP'),
     status: object ? object.body ? 200 : 304 : 404,
     key: object?.key,
-    battery: request.headers.get('x-battery-voltage'),
+    battery: {
+      voltage: request.headers.get('x-battery-voltage'),
+      percent: request.headers.get('x-battery-percent'),
+      chargeRate: request.headers.get('x-battery-chargerate'),
+    }
   }));
 
   if (!object) {
