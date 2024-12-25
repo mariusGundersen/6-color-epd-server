@@ -1,9 +1,11 @@
 {
   "short_name": "EPD",
   "name": "EPD image upload",
-  "icons":[
+  "icons": [
     {
-      "src": "/icon.png"
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": "/",
