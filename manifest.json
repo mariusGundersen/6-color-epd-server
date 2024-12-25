@@ -3,7 +3,7 @@
   "name": "EPD image upload",
   "icons":[
     {
-      "src": "/icon.svg"
+      "src": "/icon.png"
     }
   ],
   "start_url": "/",
