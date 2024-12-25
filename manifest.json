@@ -3,7 +3,7 @@
   "name": "EPD image upload",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
