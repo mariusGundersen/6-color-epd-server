@@ -1,6 +1,3 @@
-import React from "react";
-import { renderToReadableStream } from "react-dom/server";
-
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
 
@@ -12,16 +9,12 @@ export async function onRequestGet({ request, env }) {
     cursor,
   });
 
-  const body = await renderToReadableStream(
-    <>
-      {result.objects.map((r) => (
+  const body = result.objects.map((r) => (`
         <li>
-          <img src={`/api/photos/${r.key}`} />
-          <span>{formatDate(r.key)}</span>
+          <img src="/api/photos/${r.key}" />
+          <span>${formatDate(r.key)}</span>
         </li>
-      ))}
-    </>
-  );
+      `)).join('\n');
 
   // return json
   return new Response(body, {
