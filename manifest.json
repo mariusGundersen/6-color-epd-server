@@ -3,7 +3,7 @@
   "name": "EPD image upload",
   "icons": [
     {
-      "src": "512.png",
+      "src": "icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"

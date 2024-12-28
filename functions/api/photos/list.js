@@ -11,7 +11,7 @@ export async function onRequestGet({ request, env }) {
 
   const body = result.objects.map((r) => (`
         <li>
-          <img src="/api/photos/${r.key}" />
+          <img src="/api/photos/${r.key}" loading="lazy" />
           <span>${formatDate(r.key)}</span>
         </li>
       `)).join('\n');
