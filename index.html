@@ -7,17 +7,29 @@
   <title>Upload</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="manifest" href="/manifest.json">
+  <script src="https://unpkg.com/htmx.org@2.0.4"
+    integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+    crossorigin="anonymous"></script>
 </head>
 
 <body>
-  <div>
-    <pan-zoom></pan-zoom>
-    <label>
-      <input type="file" accept="image/*">
-      <span>Velg bilde</span>
-    </label>
-    <button>OK</button>
+  <div class="timeline">
+    <ul hx-get="/api/photos/list" hx-swap="beforeend" hx-trigger="load">
+      <li>
+        <label>
+          <input type="file" accept="image/*" />
+          <span>Nytt bilde</span>
+        </label>
+      </li>
+    </ul>
   </div>
+  <dialog>
+    <pan-zoom></pan-zoom>
+    <form method="dialog">
+      <button formmethod="dialog">CANCEL</button>
+      <button type="submit">OK</button>
+    </form>
+  </dialog>
   <script type="module" src="/main.js"></script>
 </body>
 

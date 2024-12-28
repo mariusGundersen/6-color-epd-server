@@ -10,9 +10,13 @@ document.querySelector("input[type=file]").addEventListener('change', e => {
         img.setAttribute('src', e.target.result);
     };
     reader.readAsDataURL(file);
+
+    const dialog = document.querySelector('dialog');
+
+    dialog.showModal();
 });
 
-document.querySelector('button').addEventListener('click', async e => {
+document.querySelector('button[type=submit]').addEventListener('click', async e => {
     const button = e.currentTarget;
     button.disabled = true;
 

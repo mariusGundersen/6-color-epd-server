@@ -1,3 +1,7 @@
 [[r2_buckets]]
-binding = 'BUCKET' # <~ valid JavaScript variable name
+binding = 'BUCKET'          # <~ valid JavaScript variable name
 bucket_name = '6-color-epd'
+
+[[kv]]
+binding = 'KV'
+namespace = '6-color-epd'

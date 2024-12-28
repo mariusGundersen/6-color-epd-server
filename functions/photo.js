@@ -1,5 +1,3 @@
-
-
 export async function onRequest({ request, env }) {
   const listed = await env.BUCKET.list({ prefix: 'img-', limit: 1 });
   const object = await env.BUCKET.get(listed.objects[0].key, { onlyIf: request.headers });
