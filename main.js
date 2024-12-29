@@ -28,4 +28,5 @@ document.querySelector('button[type=submit]').addEventListener('click', async e 
     });
 
     button.textContent = 'SUCCESS!!!';
+    location.reload();
 });
