@@ -80,6 +80,7 @@ dialog[open] {
     button {
       border: none;
       height: 3em;
+      font-weight: bold;
 
       &:focus {
         outline: none;
