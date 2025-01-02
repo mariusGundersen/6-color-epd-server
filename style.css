@@ -69,7 +69,7 @@ dialog[open] {
   flex-direction: column;
   --r: 480 / 800;
   --w: calc(100vw - 2em);
-  --h: calc(100dvh - 2em - 2em);
+  --h: calc(100dvh - 2em - 3em);
   max-width: unset;
   max-height: unset;
 
@@ -79,7 +79,7 @@ dialog[open] {
 
     button {
       border: none;
-      height: 2em;
+      height: 3em;
 
       &:focus {
         outline: none;
