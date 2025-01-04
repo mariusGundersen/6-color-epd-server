@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dither</title>
+  <style>
+    canvas {
+      image-rendering: optimizeSpeed;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -o-crisp-edges;
+      image-rendering: crisp-edges;
+      -ms-interpolation-mode: nearest-neighbor;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas></canvas>
+  <script type="module">
+    const canvas = document.querySelector('canvas');
+    canvas.width = 480;
+    canvas.height = 800;
+
+
+    const ctx = canvas.getContext('2d');
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false;
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    //canvas.style.width = w * 2 + 'px';
+
+    const RGB_RED_FULL = 0b11111;
+    const RGB_GREEN_FULL = 0b111111;
+    const RGB_BLUE_FULL = 0b11111;
+    const RGB_RED_HALF = 0b1111;
+    const RGB_GREEN_HALF = 0b11111;
+    const RGB_BLUE_HALF = 0b1111;
+
+    const RGB_BLACK = 0x0000; // black
+    const RGB_WHITE = 0xffff; // white
+    const RGB_YELLOW = 0xFFE0;// yellow
+    const RGB_RED = 0xF800;// red
+    const RGB_BLUE = 0x001F;// blue
+    const RGB_GREEN = 0x07E0;// green
+
+
+    const gradient = ctx.createLinearGradient(0, 0, w, 0);
+
+    // Add three color stops
+    gradient.addColorStop(0, "green");
+    gradient.addColorStop(0.5, "cyan");
+    gradient.addColorStop(1, "blue");
+
+    // Set the fill style and draw a rectangle
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, w, h);
+
+
+    const img = new Image();
+    img.src = "/img2.jpeg";
+    await new Promise(r => img.onload = r);
+    ctx.drawImage(img, 0, 0);
+
+    const imgData = ctx.getImageData(0, 0, w, h / 2);
+    const rgb = new Uint16Array(w * h);
+    for (let i = 0; i < w * h; i++) {
+      const [r, g, b, a] = imgData.data.slice(i * 4, i * 4 + 4);
+      rgb[i] = to16(r >> 3, g >> 2, b >> 3);
+    }
+
+    dither(rgb, w, h / 2);
+
+    for (let i = 0; i < w * h; i++) {
+      const [r, g, b] = toRGB(rgb[i]);
+      imgData.data[i * 4 + 0] = r << 3;
+      imgData.data[i * 4 + 1] = g << 2;
+      imgData.data[i * 4 + 2] = b << 3;
+    }
+
+
+
+    ctx.putImageData(imgData, 0, 0);
+
+    function dither(pixels, w, h) {
+      let row = 0;
+      for (let y = 0; y < h; y++, row += w) {
+        let next_row = row + w;
+        let has_next_row = y + 1 < h;
+
+        for (let x = 0; x < w; x++) {
+          let oldpixel = pixels[row + x];
+          let newpixel = find_closest_palette_color(oldpixel, y + x);
+
+          const errors = toRGB(oldpixel);
+          const e = toRGB(newpixel);
+          errors[0] -= e[0];
+          errors[1] -= e[1];
+          errors[2] -= e[2];
+
+          pixels[row + x] = newpixel;
+          if (x + 1 < w) {
+            add_error(row + (x + 1), errors, 7);
+          }
+
+          if (has_next_row) {
+            if (x - 1 >= 0) {
+              add_error(next_row + (x - 1), errors, 3);
+            }
+
+            add_error(next_row + (x + 0), errors, 5);
+
+            if (x + 1 < w) {
+              add_error(next_row + (x + 1), errors, 1);
+            }
+          }
+        }
+      }
+
+      function add_error(i, e, q) {
+
+        let [r, g, b] = toRGB(pixels[i]);
+
+        r = clamp(r + e[0] * q / 16, 0, RGB_RED_FULL);
+        g = clamp(g + e[1] * q / 16, 0, RGB_GREEN_FULL);
+        b = clamp(b + e[2] * q / 16, 0, RGB_BLUE_FULL);
+
+        pixels[i] = to16(r, g, b);
+      }
+    }
+
+    function find_closest_palette_color(pixel, evenOdd) {
+      let [r, g, b] = toRGB(pixel);
+
+      if (r < RGB_RED_HALF) {
+        if (g < RGB_GREEN_HALF) {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_BLACK;
+          } else {
+            return RGB_BLUE;
+          }
+        } else {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_GREEN;
+          } else {
+            // cyan, green, blue or white
+            g = g >> 1;
+            const w = RGB_RED_FULL - r;
+
+            if (g > b) {
+              if (g > w) {
+                return RGB_GREEN;
+              } else if (g === w) {
+                switch (evenOdd % 2) {
+                  case 0:
+                    return RGB_GREEN;
+                  case 1:
+                    return RGB_WHITE
+                }
+              } else {
+                return RGB_WHITE;
+              }
+            } else if (g === b) {
+              if (w > b) {
+                return RGB_WHITE;
+              } else if (b === w) {
+                switch (evenOdd % 3) {
+                  case 0:
+                    return RGB_GREEN;
+                  case 1:
+                    return RGB_BLUE
+                  case 2:
+                    return RGB_WHITE;
+                }
+              } else {
+                switch (evenOdd % 2) {
+                  case 0:
+                    return RGB_GREEN;
+                  case 1:
+                    return RGB_BLUE;
+                }
+              }
+            } else {
+              if (b > w) {
+                return RGB_BLUE;
+              } else if (b === w) {
+                switch (evenOdd % 2) {
+                  case 0:
+                    return RGB_BLUE;
+                  case 1:
+                    return RGB_WHITE
+                }
+              } else {
+                return RGB_WHITE;
+              }
+            }
+          }
+        }
+      }
+      else {
+        if (g < RGB_GREEN_HALF) {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_RED;
+          } else {
+            // magenta: red, blue or white
+            const w = (RGB_GREEN_FULL - g) >> 1;
+            if (r > b) {
+              if (r > w) {
+                return RGB_RED;
+              } else if (r === w) {
+                switch (evenOdd % 2) {
+                  case 0:
+                    return RGB_RED;
+                  case 1:
+                    return RGB_WHITE;
+                }
+              } else {
+                return RGB_WHITE;
+              }
+            } else if (r === b) {
+              if (w > r) {
+                return RGB_WHITE;
+              } else if (r === w) {
+                switch (evenOdd % 3) {
+                  case 0:
+                    return RGB_GREEN;
+                  case 1:
+                    return RGB_BLUE
+                  case 2:
+                    return RGB_WHITE;
+                }
+              } else {
+                switch (evenOdd % 2) {
+                  case 0:
+                    return RGB_RED;
+                  case 1:
+                    return RGB_BLUE;
+                }
+              }
+            } else {
+              if (b > w) {
+                return RGB_BLUE;
+              } else if (b === w) {
+                switch (evenOdd % 2) {
+                  case 0:
+                    return RGB_BLUE;
+                  case 1:
+                    return RGB_WHITE;
+                }
+              } else {
+                return RGB_WHITE;
+              }
+            }
+          }
+        }
+        else {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_YELLOW;
+          } else {
+            return RGB_WHITE;
+          }
+        }
+      }
+
+      debugger;
+    }
+
+    function toRGB(v) {
+      const r = (v >> 11) & RGB_RED_FULL;
+      const g = (v >> 5) & RGB_GREEN_FULL;
+      const b = (v >> 0) & RGB_BLUE_FULL;
+      return [r, g, b];
+    }
+
+    function to16(r, g, b) {
+      return (r << 11) | (g << 5) | (b << 0);
+    }
+
+    function clamp(v, min, max) {
+      return v < min ? min : v > max ? max : v;
+    }
+  </script>
+</body>
+
+</html>
