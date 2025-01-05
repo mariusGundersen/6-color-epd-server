@@ -13,7 +13,7 @@ body {
   background: #333840;
   margin: 0;
   display: grid;
-  place-content: center;
+  place-content: start;
   font-family: sans-serif;
 }
 
