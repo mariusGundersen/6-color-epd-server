@@ -82,7 +82,9 @@ export async function onRequestGet({ request, env }) {
 }
 
 function formatDate(date) {
-  const diff = (new Date() - date) / 1000 / 86400;
+  const day = Date.parse(date.toISOString().split("T")[0]);
+  const today = Date.parse(new Date().toISOString().split("T")[0]);
+  const diff = (today - day) / 1000 / 86400;
   if (diff < -1) return date.toDateString();
   if (diff < 0) return "Tomorow";
   if (diff < 1) return "Today";
