@@ -13,15 +13,16 @@ export async function onRequestGet({ request, env }) {
     result.objects.map(async ({ key }) => {
       const time = 2 ** 32 - key.slice(4, -5);
       const date = new Date(time * 1000);
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
 
       const { keys } = await env.KV.list({
-        prefix: date.toISOString().split("T")[0],
+        prefix: nextDay.toISOString().split("T")[0],
       });
 
       const reqs = await Promise.all(
         keys.map(async ({ name }) => {
           const req = await env.KV.get(name, "json");
-          console.log(req);
           const who = await env.KV.get(req.ip);
           return {
             ...req,
