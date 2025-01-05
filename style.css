@@ -13,7 +13,7 @@ body {
   background: #333840;
   margin: 0;
   display: grid;
-  place-content: start;
+  place-content: stretch;
   font-family: sans-serif;
 }
 
@@ -28,6 +28,7 @@ body {
     padding: 8px;
     margin: 0;
     list-style: none;
+    height: 100%;
 
     >li {
       flex: 0 0 auto;
