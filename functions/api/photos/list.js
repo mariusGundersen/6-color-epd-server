@@ -9,12 +9,60 @@ export async function onRequestGet({ request, env }) {
     cursor,
   });
 
-  const body = result.objects.map((r) => (`
+  const entries = await Promise.all(
+    result.objects.map(async ({ key }) => {
+      const time = 2 ** 32 - key.slice(4, -5);
+      const date = new Date(time * 1000);
+
+      const { keys } = await env.KV.list({
+        prefix: date.toISOString().split("T")[0],
+      });
+
+      const reqs = await Promise.all(
+        keys.map(async ({ name }) => {
+          const req = await env.KV.get(name, "json");
+          console.log(req);
+          const who = await env.KV.get(req.ip);
+          return {
+            ...req,
+            who,
+          };
+        })
+      );
+
+      return {
+        key,
+        date,
+        reqs,
+      };
+    })
+  );
+
+  const body = entries
+    .map(
+      (r) => `
         <li>
           <img src="/api/photos/${r.key}" loading="lazy" />
-          <span>${formatDate(r.key)}</span>
+          <h2>${formatDate(r.date)}</h2>
+          <table>
+            <tr>
+              <th>IP</th>
+              <th>Who</th>
+              <th>Battery</th>
+            </tr>
+            ${r.reqs.map(
+              (r) => `
+                <tr>
+                  <td>${r.ip}</td>
+                  <td>${r.who}</td>
+                  <td>${r.battery.voltage}</td>
+                </tr>`
+            )}
+          </table>
         </li>
-      `)).join('\n');
+      `
+    )
+    .join("\n");
 
   // return json
   return new Response(body, {
@@ -24,10 +72,6 @@ export async function onRequestGet({ request, env }) {
   });
 }
 
-function formatDate(key) {
-  //const key = `img-${Math.floor(2 ** 32 - Date.now() / 1000)}.jpeg`;
-  const time = 2 ** 32 - key.slice(4, -5);
-  const date = new Date(time * 1000);
-
+function formatDate(date) {
   return date.toDateString();
 }

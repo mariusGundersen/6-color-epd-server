@@ -19,7 +19,7 @@ body {
 
 .timeline {
   width: 100vw;
-  ul {
+  >ul {
     display: flex;
     align-items: stretch;
     overflow: scroll;
@@ -29,21 +29,23 @@ body {
     margin: 0;
     list-style: none;
 
-    li {
-      width: 50vw;
-      max-height: 80dvh;
-      aspect-ratio: 480 / 800;
+    >li {
       flex: 0 0 auto;
       display: grid;
       place-content: stretch;
+      direction: ltr;
+      text-align: left;
+      color: white;
 
-      img {
-        width: 50vw;
+      img, label {
+        width: min(50vw, 480 / 800 * 80dvh);
+        max-height: 80dvh;
+        aspect-ratio: 480 / 800;
       }
 
-      span {
-        color: white;
+      h2 {
         text-align: center;
+        margin-top: 0;
       }
 
       label {
