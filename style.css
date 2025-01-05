@@ -31,11 +31,13 @@ body {
 
     >li {
       flex: 0 0 auto;
-      display: grid;
-      place-content: stretch;
+      display: flex;
+      flex-direction: column;
       direction: ltr;
       text-align: left;
       color: white;
+      max-height: 90dvh;
+      overflow: auto;
 
       img, label {
         width: min(50vw, 480 / 800 * 80dvh);

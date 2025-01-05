@@ -50,14 +50,16 @@ export async function onRequestGet({ request, env }) {
               <th>Who</th>
               <th>Battery</th>
             </tr>
-            ${r.reqs.map(
-              (r) => `
+            ${r.reqs
+              .map(
+                (r) => `
                 <tr>
                   <td>${r.ip}</td>
                   <td>${r.who}</td>
                   <td>${r.battery.voltage}</td>
                 </tr>`
-            )}
+              )
+              .join("")}
           </table>
         </li>
       `
