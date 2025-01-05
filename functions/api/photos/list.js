@@ -26,6 +26,7 @@ export async function onRequestGet({ request, env }) {
           const who = await env.KV.get(req.ip);
           return {
             ...req,
+            time: name.split("T")[1].split(".")[0],
             who,
           };
         })
@@ -51,16 +52,17 @@ export async function onRequestGet({ request, env }) {
           <h2>${formatDate(r.date)}</h2>
           <table>
             <tr>
-              <th>IP</th>
               <th>Who</th>
+              <th>Time</th>
               <th>Battery</th>
             </tr>
             ${r.reqs
+              .sort((a, b) => a.who < b.who)
               .map(
                 (r) => `
                 <tr>
-                  <td>${r.ip}</td>
                   <td>${r.who}</td>
+                  <td>${r.time}</td>
                   <td>${r.battery.voltage}</td>
                 </tr>`
               )
