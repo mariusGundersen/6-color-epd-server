@@ -7,17 +7,17 @@ export async function onRequestGet({ request, env }) {
   const result = await env.BUCKET.list({
     prefix: "img-",
     cursor,
+    limit: 10,
   });
 
   const entries = await Promise.all(
     result.objects.map(async ({ key }) => {
       const time = 2 ** 32 - key.slice(4, -5);
       const date = new Date(time * 1000);
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
+      date.setDate(date.getDate() + 1);
 
       const { keys } = await env.KV.list({
-        prefix: nextDay.toISOString().split("T")[0],
+        prefix: date.toISOString().split("T")[0],
       });
 
       const reqs = await Promise.all(
@@ -41,8 +41,12 @@ export async function onRequestGet({ request, env }) {
 
   const body = entries
     .map(
-      (r) => `
-        <li>
+      (r, i, { length }) => `
+        <li ${
+          i === length - 1 && result.cursor
+            ? `hx-get="/api/photos/list?cursor=${result.cursor}" hx-swap="afterend" hx-trigger="intersect once"`
+            : ""
+        }>
           <img src="/api/photos/${r.key}" loading="lazy" />
           <h2>${formatDate(r.date)}</h2>
           <table>
