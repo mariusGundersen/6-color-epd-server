@@ -57,7 +57,7 @@ export async function onRequestGet({ request, env }) {
               <th>Battery</th>
             </tr>
             ${r.reqs
-              .sort((a, b) => a.who.localeCompare(b.who))
+              .sort((a, b) => a.who && b.who && a.who.localeCompare(b.who))
               .map(
                 (r) => `
                 <tr>
