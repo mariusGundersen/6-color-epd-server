@@ -32,7 +32,8 @@ export async function onRequestGet({ request, env }) {
           ? `hx-get="/api/photos/list?cursor=${result.cursor}" hx-swap="afterend" hx-trigger="intersect once"`
           : ""
         }>
-          <img src="/api/photos/${r.key}" loading="lazy" />
+          <button popovertarget="${r.key}"><img src="/api/photos/${r.key}" loading="lazy" /></button>
+          <img popover id="${r.key}" src="/api/photos/${r.key}" loading="lazy">
           <h2>${formatDate(r.date)}</h2>
           <div hx-get="/api/photos/req/${r.date.toISOString().split('T')[0]}" hx-trigger="intersect once"></div>
         </li>

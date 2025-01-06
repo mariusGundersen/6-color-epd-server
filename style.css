@@ -19,7 +19,7 @@ body {
 
 .timeline {
   width: 100vw;
-  >ul {
+  > ul {
     display: flex;
     align-items: stretch;
     overflow: scroll;
@@ -30,7 +30,7 @@ body {
     list-style: none;
     height: 100%;
 
-    >li {
+    > li {
       flex: 0 0 auto;
       display: flex;
       flex-direction: column;
@@ -40,10 +40,30 @@ body {
       max-height: 90dvh;
       overflow: auto;
 
-      img, label {
+      > label,
+      > button {
         width: min(50vw, 480 / 800 * 80dvh);
         max-height: 80dvh;
         aspect-ratio: 480 / 800;
+        border: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        place-content: center;
+
+        img {
+          width: 100%;
+        }
+      }
+
+      img[popover]:popover-open {
+        width: min(95vw, 480 / 800 * 95dvh);
+        padding: 0;
+        border: none;
+
+        &::backdrop {
+          background: #000e;
+        }
       }
 
       h2 {
