@@ -1,6 +1,20 @@
 export async function onRequest({ request, env }) {
-  const listed = await env.BUCKET.list({ prefix: 'img-', limit: 1 });
-  const object = await env.BUCKET.get(listed.objects[0].key, { onlyIf: request.headers });
+  const date = new Date();
+  let key = `img-${date.toISOString().split('T')[0]}`;
+  console.log(key);
+  let name = await env.KV.get(key);
+  while (!name) {
+    date.setDate(date.getDate() - 1);
+    key = `img-${date.toISOString().split('T')[0]}`;
+    console.log(key);
+    name = await env.KV.get(key);
+
+    if (key < 'img-2024') {
+      return new Response("Object not found", { status: 404 });
+    }
+  }
+
+  const object = await env.BUCKET.get(name, { onlyIf: request.headers });
 
   await env.KV.put(new Date().toISOString(), JSON.stringify({
     ip: request.headers.get('CF-Connecting-IP'),

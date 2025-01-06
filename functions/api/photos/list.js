@@ -9,29 +9,39 @@ export async function onRequestGet({ request, env }) {
   const result = await env.BUCKET.list({
     prefix: "img-",
     cursor,
-    limit: 10,
+    limit: 2,
   });
 
   const entries = await Promise.all(
-    result.objects.map(async ({ key }) => {
+    result.objects.map(async ({ key }, i, { length }) => {
       const time = 2 ** 32 - key.slice(4, -5);
       const date = new Date(time * 1000);
       date.setDate(date.getDate() + 1);
 
+      const kvKey = `img-${date.toISOString().split('T')[0]}`;
+
+      if (await env.KV.get(kvKey)) {
+        console.log('exists ', kvKey, key);
+      } else {
+        console.log('put', kvKey, key);
+        await env.KV.put(kvKey, key);
+      }
+
       return {
         key,
-        date
+        date,
+        cursor: i === length - 1 ? result.cursor : undefined
       };
     })
   );
 
   const body = html`${entries
     .map(
-      (r, i, { length }) => html`
-        <li ${i === length - 1 && result.cursor
-          ? `hx-get="/api/photos/list?cursor=${result.cursor}" hx-swap="afterend" hx-trigger="intersect once"`
-          : ""
-        }>
+      (r) => html`
+        ${r.cursor
+          ? html`<li hx-get="/api/photos/list?cursor=${r.cursor}" hx-swap="afterend" hx-trigger="intersect once">`
+          : html`<li>`
+        }
           <button popovertarget="${r.key}"><img src="/api/photos/${r.key}" loading="lazy" /></button>
           <img popover id="${r.key}" src="/api/photos/${r.key}" loading="lazy">
           <h2>${formatDate(r.date)}</h2>

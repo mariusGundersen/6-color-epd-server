@@ -10,7 +10,7 @@ export async function onRequestGet({ request, env, params }) {
   const reqs = await Promise.all(
     keys.map(async ({ name }) => {
       const req = await env.KV.get(name, "json");
-      const who = await env.KV.get(req.ip) ?? '<unknown>';
+      const who = await env.KV.get(req.ip) ?? '&lt;unknown&gt;';
       return {
         ...req,
         time: name.split("T")[1].split(".")[0],
