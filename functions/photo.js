@@ -10,7 +10,8 @@ export async function onRequest({ request, env }) {
       voltage: request.headers.get('x-battery-voltage'),
       percent: request.headers.get('x-battery-percent'),
       chargeRate: request.headers.get('x-battery-chargerate'),
-    }
+    },
+    version: request.headers.get('x-release-version')
   }));
 
   if (!object) {
