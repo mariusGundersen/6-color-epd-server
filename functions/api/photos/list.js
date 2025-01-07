@@ -1,3 +1,4 @@
+// @ts-check
 import html from "../../html";
 
 export async function onRequestGet({ request, env }) {
@@ -5,50 +6,70 @@ export async function onRequestGet({ request, env }) {
 
   const cursor = url.searchParams.get("cursor") ?? undefined;
 
-  // list r2
-  const result = await env.BUCKET.list({
-    prefix: "img-",
-    cursor,
-    limit: 2,
-  });
+  /**
+   * @type {{key: string, date: string, future?: boolean, cursor?: string}[]}
+   */
+  const entries = [];
+  let date;
 
-  const entries = await Promise.all(
-    result.objects.map(async ({ key }, i, { length }) => {
-      const time = 2 ** 32 - key.slice(4, -5);
-      const date = new Date(time * 1000);
+  if (cursor) {
+    date = new Date(Date.parse(`${cursor}T12:00:00.0Z`));
+    date.setDate(date.getDate() - 1);
+  } else {
+    date = new Date();
+    while (true) {
       date.setDate(date.getDate() + 1);
+      const key = date.toISOString().split('T')[0];
+      const name = await env.KV.get(`img-${key}`);
 
-      const kvKey = `img-${date.toISOString().split('T')[0]}`;
+      if (!name) break;
 
-      if (await env.KV.get(kvKey)) {
-        console.log('exists ', kvKey, key);
-      } else {
-        console.log('put', kvKey, key);
-        await env.KV.put(kvKey, key);
-      }
+      entries.unshift({
+        key: name,
+        date: key,
+        future: true
+      });
+    }
+    // reset date to today
+    date = new Date();
+  }
 
-      return {
-        key,
-        date,
-        cursor: i === length - 1 ? result.cursor : undefined
-      };
-    })
-  );
+  for (let i = 0; i < 10; i++) {
+    const key = date.toISOString().split('T')[0];
+    const name = await env.KV.get(`img-${key}`);
+    entries.push({
+      key: name,
+      date: key,
+      cursor: i == 9 ? key : undefined
+    });
+    date.setDate(date.getDate() - 1);
+  }
 
   const body = html`${entries
     .map(
-      (r) => html`
-        ${r.cursor
-          ? html`<li hx-get="/api/photos/list?cursor=${r.cursor}" hx-swap="afterend" hx-trigger="intersect once">`
+      ({ date, key, cursor, future }) => html`
+        ${cursor
+          ? html`<li hx-get="/api/photos/list?cursor=${cursor}" hx-swap="afterend" hx-trigger="intersect once">`
           : html`<li>`
         }
-          <button popovertarget="${r.key}"><img src="/api/photos/${r.key}" loading="lazy" /></button>
-          <img popover id="${r.key}" src="/api/photos/${r.key}" loading="lazy">
-          <h2>${formatDate(r.date)}</h2>
-          <div hx-get="/api/photos/req/${r.date.toISOString().split('T')[0]}" hx-trigger="intersect once"></div>
+          ${key ? html`
+            <button popovertarget="${date}">
+              <img src="/api/photos/${key}" loading="lazy" />
+            </button>
+            <img popover id="${date}" src="/api/photos/${key}" loading="lazy">
+          ` : html`
+            <div></div>
+          `}
+          <h2>${formatDate(date)}</h2>
+          ${future ? html`
+            <div>Drag me</div>
+          ` : html`
+            <div hx-get="/api/photos/req/${date}" hx-trigger="intersect once"></div>
+          `}
         </li>
       `
-    )}`;
+    )
+    }`;
 
   // return json
   return new Response(body, {
@@ -58,14 +79,28 @@ export async function onRequestGet({ request, env }) {
   });
 }
 
+
+const WEEKDAY = new Intl.DateTimeFormat('nb-NO', {
+  weekday: 'long',
+  timeZone: 'Europe/Oslo',
+});
+const DATE = new Intl.DateTimeFormat('nb-NO', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Europe/Oslo',
+
+})
+
 function formatDate(date) {
-  const day = Date.parse(date.toISOString().split("T")[0]);
+  const day = Date.parse(date);
   const today = Date.parse(new Date().toISOString().split("T")[0]);
   const diff = (today - day) / 1000 / 86400;
-  if (diff < -1) return date.toDateString();
-  if (diff < 0) return "Tomorow";
-  if (diff < 1) return "Today";
-  if (diff < 2) return "Yesterday";
+  if (diff >= -1) {
+    if (diff < 0) return html`i morgen<br>&nbsp;`;
+    if (diff < 1) return html`i dag<br>&nbsp;`;
+    if (diff < 2) return html`i går<br>&nbsp;`;
+  }
 
-  return date.toDateString();
+  return html`${WEEKDAY.format(day)}<br>${DATE.format(day)}`;
 }

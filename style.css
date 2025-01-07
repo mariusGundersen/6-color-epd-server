@@ -32,24 +32,21 @@ body {
 
     > li {
       flex: 0 0 auto;
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      align-content: start;
+      grid-template-columns: min(50vw, 480 / 800 * 80dvh);
+      grid-template-rows: min(800 / 480 * 50vw, 80dvh);
+      grid-auto-rows: auto;
       direction: ltr;
       text-align: left;
       color: white;
       max-height: 90dvh;
-      overflow: auto;
+      overflow: hidden auto;
 
-      > label,
       > button {
-        width: min(50vw, 480 / 800 * 80dvh);
-        max-height: 80dvh;
-        aspect-ratio: 480 / 800;
         border: none;
         margin: 0;
         padding: 0;
-        display: grid;
-        place-content: center;
 
         img {
           width: 100%;
