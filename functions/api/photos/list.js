@@ -54,7 +54,7 @@ export async function onRequestGet({ request, env }) {
         }
           ${key ? html`
             <button popovertarget="${date}">
-              <img src="/api/photos/${key}" loading="lazy" />
+              <img src="/api/photos/${key}" loading="lazy" draggable="${future ? "true" : "false"}" />
             </button>
             <img popover id="${date}" src="/api/photos/${key}" loading="lazy">
           ` : html`
