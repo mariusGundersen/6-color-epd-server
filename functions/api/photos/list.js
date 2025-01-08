@@ -50,7 +50,7 @@ export async function onRequestGet({ request, env }) {
       ({ date, key, cursor, future }) => html`
         ${cursor
           ? html`<li hx-get="/api/photos/list?cursor=${cursor}" hx-swap="afterend" hx-trigger="intersect once">`
-          : html`<li class="${future && 'draggable'}" draggable="${future ? "true" : "false"}">`
+          : html`<li draggable="${future ? "true" : "false"}">`
         }
           ${key ? html`
             <button popovertarget="${date}">

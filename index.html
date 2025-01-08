@@ -13,38 +13,62 @@
   <script>
     function isBefore(el1, el2) {
       if (el2.parentNode !== el1.parentNode) return false;
-      for (var cur = el1.previousSibling; cur && cur.nodeType !== 9; cur = cur.previousSibling) {
+      for (let cur = el1.previousElementSibling; cur; cur = cur.previousElementSibling) {
         if (cur === el2)
           return true;
       }
       return false;
     }
 
-    let _el;
+    let draggedElement;
+    let initialSibling;
+    function revertDraggedElement() {
+      if (draggedElement.previousElementSibling === initialSibling) return
+      initialSibling.insertAdjacentElement('afterend', draggedElement);
+    }
+
     htmx.onLoad(function (content) {
-      if (content.matches('li.draggable')) {
-        const elm = content;
-        elm.addEventListener('dragover', e => {
-          if (isBefore(_el, e.currentTarget))
-            e.currentTarget.parentNode.insertBefore(_el, e.currentTarget);
-          else
-            e.currentTarget.parentNode.insertBefore(_el, e.currentTarget.nextSibling);
+      if (content.matches('li[draggable=true]')) {
+        content.addEventListener('dragover', e => {
+          e.dataTransfer.dropEffect = "move";
+          e.preventDefault();
+          if (e.currentTarget == draggedElement) return;
+          e.currentTarget.insertAdjacentElement(isBefore(draggedElement, e.currentTarget) ? 'beforebegin' : 'afterend', draggedElement);
+        }, false);
+
+        content.addEventListener('dragleave', e => {
+          if (!e.relatedTarget.closest('[draggable=true]')) {
+            revertDraggedElement()
+          }
         }, false);
 
         let _elm;
-        elm.addEventListener('pointerdown', e => {
+        content.addEventListener('pointerdown', e => {
           _elm = e.target;
         }, false);
 
-        elm.addEventListener('dragstart', e => {
+        content.addEventListener('dragstart', e => {
           if (!_elm.closest('.drag-handle')) {
             e.preventDefault();
             return;
           }
           e.dataTransfer.effectAllowed = "move";
           e.dataTransfer.setData("text/plain", null); // Thanks to bqlou for their comment.
-          _el = e.currentTarget;
+          draggedElement = e.currentTarget;
+          initialSibling = e.currentTarget.previousElementSibling;
         }, false);
+
+        content.addEventListener('dragend', e => {
+          if (e.dataTransfer.dropEffect === "none") {
+            revertDraggedElement()
+          }
+        }, false);
+
+        content.addEventListener('drop', e => {
+          console.log('drop', e.dataTransfer.dropEffect);
+          e.preventDefault();
+        }, false)
+
       }
     });
   </script>
