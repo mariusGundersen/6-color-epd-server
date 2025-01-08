@@ -2,11 +2,13 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow: scroll hidden;
+}
+
 html,
 body {
   height: 100dvh;
-  width: 100dvw;
-  overflow: hidden;
 }
 
 body {
@@ -15,15 +17,20 @@ body {
   display: grid;
   place-content: stretch;
   font-family: sans-serif;
+  direction: rtl;
+
+  > * {
+    direction: initial;
+  }
 }
 
 .timeline {
-  width: 100vw;
+  direction: rtl;
+  height: 100dvh;
+
   > ul {
     display: flex;
     align-items: stretch;
-    overflow: scroll;
-    direction: rtl;
     gap: 8px;
     padding: 8px;
     margin: 0;
@@ -40,7 +47,7 @@ body {
       direction: ltr;
       text-align: left;
       color: white;
-      max-height: 90dvh;
+      height: 100%;
       overflow: hidden auto;
 
       > button {
