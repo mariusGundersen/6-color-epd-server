@@ -31,7 +31,16 @@
             e.currentTarget.parentNode.insertBefore(_el, e.currentTarget.nextSibling);
         }, false);
 
+        let _elm;
+        elm.addEventListener('pointerdown', e => {
+          _elm = e.target;
+        }, false);
+
         elm.addEventListener('dragstart', e => {
+          if (!_elm.closest('.drag-handle')) {
+            e.preventDefault();
+            return;
+          }
           e.dataTransfer.effectAllowed = "move";
           e.dataTransfer.setData("text/plain", null); // Thanks to bqlou for their comment.
           _el = e.currentTarget;

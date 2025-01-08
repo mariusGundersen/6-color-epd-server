@@ -50,11 +50,11 @@ export async function onRequestGet({ request, env }) {
       ({ date, key, cursor, future }) => html`
         ${cursor
           ? html`<li hx-get="/api/photos/list?cursor=${cursor}" hx-swap="afterend" hx-trigger="intersect once">`
-          : html`<li class="${future && 'draggable'}">`
+          : html`<li class="${future && 'draggable'}" draggable="${future ? "true" : "false"}">`
         }
           ${key ? html`
             <button popovertarget="${date}">
-              <img src="/api/photos/${key}" loading="lazy" draggable="${future ? "true" : "false"}" />
+              <img src="/api/photos/${key}" loading="lazy" draggable="false" />
             </button>
             <img popover id="${date}" src="/api/photos/${key}" loading="lazy">
           ` : html`
@@ -62,7 +62,7 @@ export async function onRequestGet({ request, env }) {
           `}
           <h2>${formatDate(date)}</h2>
           ${future ? html`
-            <div class="drag-handle" draggable="false">Drag me</div>
+            <div class="drag-handle">Drag me</div>
           ` : html`
             <div hx-get="/api/photos/req/${date}" hx-trigger="intersect once"></div>
           `}
