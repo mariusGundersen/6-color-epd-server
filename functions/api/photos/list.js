@@ -10,6 +10,7 @@ export async function onRequestGet({ request, env }) {
    * @type {{key: string, date: string, future?: boolean, cursor?: string}[]}
    */
   const entries = [];
+  const futures = [];
   let date;
 
   if (cursor) {
@@ -24,7 +25,7 @@ export async function onRequestGet({ request, env }) {
 
       if (!name) break;
 
-      entries.unshift({
+      futures.unshift({
         key: name,
         date: key,
         future: true
@@ -45,13 +46,15 @@ export async function onRequestGet({ request, env }) {
     date.setDate(date.getDate() - 1);
   }
 
-  const body = html`${entries
-    .map(
-      ({ date, key, cursor, future }) => html`
+  const body = html`
+    ${!!futures.length && renderFutures(futures)}
+    ${entries
+      .map(
+        ({ date, key, cursor }) => html`
         ${cursor
-          ? html`<li hx-get="/api/photos/list?cursor=${cursor}" hx-swap="afterend" hx-trigger="intersect once">`
-          : html`<li draggable="${future ? "true" : "false"}">`
-        }
+            ? html`<li hx-get="/api/photos/list?cursor=${cursor}" hx-swap="afterend" hx-trigger="intersect once">`
+            : html`<li>`
+          }
           ${key ? html`
             <button popovertarget="${date}">
               <img src="/api/photos/${key}" loading="lazy" draggable="false" />
@@ -61,14 +64,10 @@ export async function onRequestGet({ request, env }) {
             <div></div>
           `}
           <h2>${formatDate(date)}</h2>
-          ${future ? html`
-            <div class="drag-handle">Drag me</div>
-          ` : html`
-            <div hx-get="/api/photos/req/${date}" hx-trigger="intersect once"></div>
-          `}
+          <div hx-get="/api/photos/req/${date}" hx-trigger="intersect once"></div>
         </li>
       `
-    )
+      )
     }`;
 
   // return json
@@ -77,6 +76,53 @@ export async function onRequestGet({ request, env }) {
       "Content-Type": "text/html",
     },
   });
+}
+
+/**
+ * @param {{ date: string; key: string; }[]} futures
+ */
+function renderFutures(futures) {
+  return html`
+    <form hx-post="/api/photos/list" hx-trigger="drop" hx-swap="outerHTML">
+      ${futures.map(({ date, key }) => html`
+        <li draggable="true">
+          <button popovertarget="${date}">
+            <img src="/api/photos/${key}" loading="lazy" draggable="false" />
+            <div class="drag-handle">Drag me</div>
+          </button>
+          <img popover id="${date}" src="/api/photos/${key}" loading="lazy">
+          <h2>${formatDate(date)}</h2>
+          <input type="hidden" name="item" value="${key}">
+        </li>
+      `)}
+    </form>
+  `;
+}
+
+export async function onRequestPost({ request, env }) {
+  const formData = await request.formData();
+
+  const items = formData.getAll('item').reverse();
+
+  let date = new Date();
+
+  const futures = [];
+  for (const item of items) {
+    date.setDate(date.getDate() + 1);
+    const key = date.toISOString().split('T')[0];
+    futures.unshift({
+      date: key,
+      key: item
+    });
+
+    await env.KV.put(`img-${key}`, item);
+  }
+
+  return new Response(renderFutures(futures), {
+    headers: {
+      "Content-Type": "text/html"
+    }
+  })
 }
 
 
