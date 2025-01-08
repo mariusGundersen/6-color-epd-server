@@ -53,6 +53,14 @@ body {
         }
       }
 
+      .drag-handle {
+        touch-action: none;
+        user-select: none;
+        background: red;
+        padding: 1em;
+        text-align: center;
+      }
+
       img[popover]:popover-open {
         width: min(95vw, 480 / 800 * 95dvh);
         padding: 0;

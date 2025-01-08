@@ -1,3 +1,4 @@
+import './dnd.touch.min.js?autoload';
 import './pan-zoom.js';
 
 document.querySelector("input[type=file]").addEventListener('change', e => {

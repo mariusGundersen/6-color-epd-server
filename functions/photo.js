@@ -1,7 +1,7 @@
 export async function onRequest({ request, env }) {
   const date = new Date();
   let key = `img-${date.toISOString().split('T')[0]}`;
-  console.log(key);
+
   let name = await env.KV.get(key);
   while (!name) {
     date.setDate(date.getDate() - 1);
