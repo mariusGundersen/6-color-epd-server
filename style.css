@@ -72,7 +72,7 @@ body {
     }
       
         .htmx-request &, 
-        &:has(& + .html-request) {
+        &:has(~.html-request) {
           display: grid;
         }
       
