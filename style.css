@@ -57,18 +57,11 @@ body {
       &.htmx-indicator {
         order: 1;
         place-items: center;
-        display: none;
+        opacity: 1;
 
         svg {
-          animation: spin 2s step-start infinite;
+          animation: spin 2s infinite steps(8, start);
         }
-      
-        .htmx-request &, 
-        &:has(~.htmx-request) {
-          display: grid;
-          opacity: 1;
-        }
-      
       }
       
       > button {
