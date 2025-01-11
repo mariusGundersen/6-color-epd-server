@@ -54,6 +54,18 @@ body {
       height: 100%;
       overflow: hidden auto;
 
+      &.htmx-indicator {
+        order: 1;
+        place-content: center;
+        display: none;
+
+      
+        .htmx-request & {
+          display: grid;
+        }
+      
+      }
+      
       > button {
         border: none;
         margin: 0;
