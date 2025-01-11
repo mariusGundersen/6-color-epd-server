@@ -56,9 +56,20 @@ body {
 
       &.htmx-indicator {
         order: 1;
-        place-content: center;
+        place-items: center;
         display: none;
 
+        svg {
+          animation: spin infinite step-start;
+        }
+
+    @keyframes spin { 
+        from { 
+            transform: rotate(0deg); 
+        } to { 
+            transform: rotate(360deg); 
+        }
+    }
       
         .htmx-request & {
           display: grid;
