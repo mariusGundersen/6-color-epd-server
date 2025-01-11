@@ -60,7 +60,7 @@ body {
         display: none;
 
         svg {
-          animation: spin infinite step-start;
+          animation: spin 2s infinite step-start;
         }
 
     @keyframes spin { 
