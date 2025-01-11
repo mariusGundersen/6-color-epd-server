@@ -88,7 +88,9 @@ function renderFutures(futures) {
         <li draggable="true">
           <button popovertarget="${date}">
             <img src="/api/photos/${key}" loading="lazy" draggable="false" />
-            <div class="drag-handle">Drag me</div>
+            <div class="drag-handle">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14 5V19M5 14L3 12L5 10M19 14L21 12L19 10M10 5L10 19" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg> 
+            </div>
           </button>
           <img popover id="${date}" src="/api/photos/${key}" loading="lazy">
           <h2>${formatDate(date)}</h2>
