@@ -60,20 +60,13 @@ body {
         display: none;
 
         svg {
-          animation: spin 2s infinite step-start;
+          animation: spin 2s step-start infinite;
         }
-
-    @keyframes spin { 
-        from { 
-            transform: rotate(0deg); 
-        } to { 
-            transform: rotate(360deg); 
-        }
-    }
       
         .htmx-request &, 
         &:has(~.htmx-request) {
           display: grid;
+          opacity: 1;
         }
       
       }
@@ -181,3 +174,12 @@ pan-zoom {
     height: 100%;
   }
 }
+
+
+    @keyframes spin { 
+        from { 
+            transform: rotate(0deg); 
+        } to { 
+            transform: rotate(360deg); 
+        }
+    }
