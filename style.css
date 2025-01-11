@@ -54,7 +54,7 @@ body {
       height: 100%;
       overflow: hidden auto;
 
-      &.html-indicator {
+      &.htmx-indicator {
         order: 1;
         place-items: center;
         display: none;
@@ -72,7 +72,7 @@ body {
     }
       
         .htmx-request &, 
-        &:has(~.html-request) {
+        &:has(~.htmx-request) {
           display: grid;
         }
       
