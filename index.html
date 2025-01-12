@@ -60,7 +60,7 @@
         }, false);
 
         elm.addEventListener('dragend', e => {
-          if (e.dataTransfer.dropEffect === "none") {
+          if (e.dataTransfer.dropEffect !== "move") {
             revertDraggedElement()
           }
         }, false);
