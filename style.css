@@ -122,6 +122,10 @@ body {
   }
 }
 
+.html-request .drag-handle svg {
+  opacity: 0.5;
+}
+ 
 dialog[open] {
   padding: 0;
   border: none;
