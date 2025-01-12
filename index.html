@@ -49,7 +49,7 @@
         }, false);
 
         elm.addEventListener('dragstart', e => {
-          if (!_elm.closest('.drag-handle')) {
+          if (!_elm.closest('.drag-handle') || _elm.closest('.htmx-request')) {
             e.preventDefault();
             return;
           }
