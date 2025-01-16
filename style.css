@@ -173,6 +173,16 @@ pan-zoom {
 }
 
 
+.remove-drop-zone {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: darkred;
+  color: white;
+  font-weight: bold;
+}
+
     @keyframes spin { 
         from { 
             transform: rotate(0deg); 
