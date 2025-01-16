@@ -184,9 +184,10 @@ pan-zoom {
   padding: 1em;
   text-align: center;
   font-size: 24px;
+  display: none;
 
-  :not(.dragging) & {
-    display: none;
+  .dragging & {
+    display: block;
   }
  }
 
