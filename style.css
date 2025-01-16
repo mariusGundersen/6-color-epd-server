@@ -181,7 +181,14 @@ pan-zoom {
   background: darkred;
   color: white;
   font-weight: bold;
-}
+  padding: 1em;
+  text-align: center;
+  font-size: 24px;
+
+  .timeline:not(.dragging){
+    display: none;
+  }
+ }
 
     @keyframes spin { 
         from { 
