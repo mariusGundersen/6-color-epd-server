@@ -185,7 +185,7 @@ pan-zoom {
   text-align: center;
   font-size: 24px;
 
-  .timeline:not(.dragging){
+  .timeline:not(.dragging) & {
     display: none;
   }
  }
