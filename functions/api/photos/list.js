@@ -97,6 +97,10 @@ function renderFutures(futures) {
           <input type="hidden" name="item" value="${key}">
         </li>
       `)}
+      <div class="remove-drop-zone">
+        Remove
+        <input type=hidden name=remove>
+      </div>
     </form>
   `;
 }
