@@ -41,11 +41,19 @@ function isBefore(el1, el2) {
   return false;
 }
 
-let draggedElement;
-let initialSibling;
+/** @type {Element | null} */
+let draggedElement = null;
+/** @type {Element | null} */
+let initialPreviousSibling = null;
+/** @type {Element | null} */
+let initialNextSibling = null;
 function revertDraggedElement() {
-  if (draggedElement.previousElementSibling === initialSibling) return
-  initialSibling.insertAdjacentElement('afterend', draggedElement);
+  if (hasNotMoved(draggedElement)) return
+  initialPreviousSibling?.insertAdjacentElement('afterend', draggedElement) ?? initialNextSibling.insertAdjacentElement('beforebegin', draggedElement);
+}
+
+function hasNotMoved(element) {
+  return element.previousElementSibling === initialPreviousSibling && element.nextElementSibling === initialNextSibling
 }
 
 htmx.onLoad(function (content) {
@@ -78,7 +86,8 @@ htmx.onLoad(function (content) {
       e.dataTransfer.setData("text/plain", null); // Thanks to bqlou for their comment.
       draggedElement = e.currentTarget;
       draggedElement.closest('.timeline').classList.add('dragging');
-      initialSibling = e.currentTarget.previousElementSibling;
+      initialPreviousSibling = e.currentTarget.previousElementSibling;
+      initialNextSibling = e.currentTarget.nextElementSibling;
     }, false);
 
     elm.addEventListener('dragend', e => {
@@ -89,11 +98,32 @@ htmx.onLoad(function (content) {
     }, false);
 
     elm.addEventListener('drop', e => {
-      if (initialSibling === e.target.previousElementSibling) {
+      if (hasNotMoved(e.target)) {
         e.stopPropagation();
       }
       e.preventDefault();
     }, false)
 
   });
+
+  initDropZone(content.querySelector('.remove-drop-zone'));
 });
+
+/**
+ *
+ * @param {HTMLElement} elm
+ */
+function initDropZone(elm) {
+  if (!elm) return;
+
+  elm.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    draggedElement.remove();
+  });
+
+  elm.addEventListener('drop', e => {
+    e.preventDefault();
+    elm.querySelector('input[name=remove]').value = true;
+  })
+}
