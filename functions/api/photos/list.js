@@ -9,7 +9,7 @@ export async function onRequestGet({ request, env }) {
   /**
    * @type {{key: string, date: string, future?: boolean, cursor?: string}[]}
    */
-  const entries = [];
+  let entries = [];
   const futures = [];
   let date;
 
@@ -38,13 +38,14 @@ export async function onRequestGet({ request, env }) {
   for (let i = 0; i < 10; i++) {
     const key = date.toISOString().split('T')[0];
     entries.push({
+      key: '',
       date: key,
       cursor: i == 9 ? key : undefined
     });
     date.setDate(date.getDate() - 1);
   }
 
-  await Promise.all(entries.map(async e => ({
+  entries = await Promise.all(entries.map(async e => ({
     ...e,
     key: await env.KV.get(`img-${e.date}`)
   })));
