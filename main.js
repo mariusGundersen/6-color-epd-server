@@ -62,9 +62,12 @@ htmx.onLoad(function (content) {
     elm.addEventListener('dragover', e => {
       e.dataTransfer.dropEffect = "move";
       e.preventDefault();
+    }, false);
+
+    elm.addEventListener('dragenter', e => {
       if (e.currentTarget == draggedElement) return;
       e.currentTarget.insertAdjacentElement(isBefore(draggedElement, e.currentTarget) ? 'beforebegin' : 'afterend', draggedElement);
-    }, false);
+    }, false)
 
     elm.addEventListener('dragleave', e => {
       if (e.relatedTarget?.closest('[draggable=true]') === false) {
@@ -119,11 +122,19 @@ function initDropZone(elm) {
   elm.addEventListener('dragover', e => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    draggedElement.remove();
-  });
+  }, false);
+
+  elm.addEventListener('dragenter', e => {
+    draggedElement.style.display = 'none';
+  }, false);
+
+  elm.addEventListener('dragleave', e => {
+    draggedElement.style.display = null;
+  }, false);
 
   elm.addEventListener('drop', e => {
     e.preventDefault();
+    draggedElement.remove();
     elm.querySelector('input[name=remove]').value = true;
-  })
+  }, false);
 }
