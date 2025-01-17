@@ -88,7 +88,7 @@ htmx.onLoad(function (content) {
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", null); // Thanks to bqlou for their comment.
       draggedElement = e.currentTarget;
-      draggedElement.closest('.timeline').classList.add('dragging');
+      document.querySelector('.timeline').classList.add('dragging');
       initialPreviousSibling = e.currentTarget.previousElementSibling;
       initialNextSibling = e.currentTarget.nextElementSibling;
     }, false);
@@ -97,7 +97,7 @@ htmx.onLoad(function (content) {
       if (e.dataTransfer.dropEffect !== "move") {
         revertDraggedElement()
       }
-      draggedElement.closest('.timeline').classList.remove('dragging');
+      document.querySelector('.timeline').classList.remove('dragging');
     }, false);
 
     elm.addEventListener('drop', e => {
