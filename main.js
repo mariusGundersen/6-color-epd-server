@@ -89,7 +89,7 @@ function isBefore(el1, el2) {
         }, false);
 
         elm.addEventListener('drop', e => {
-          if(initialSibling === e.currentTarget.previousElementSibling) {
+          if(initialSibling === e.target.previousElementSibling) {
             e.stopPropagation();
           }
           e.preventDefault();
