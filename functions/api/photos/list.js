@@ -46,7 +46,7 @@ export async function onRequestGet({ request, env }) {
 
   await Promise.all(entries.map(async e => ({
     ...e,
-    key: env.KV.get(`img-${e.date}`)
+    key: await env.KV.get(`img-${e.date}`)
   })));
 
   const body = html`
