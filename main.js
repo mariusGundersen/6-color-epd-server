@@ -135,6 +135,6 @@ function initDropZone(elm) {
   elm.addEventListener('drop', e => {
     e.preventDefault();
     draggedElement.remove();
-    elm.querySelector('input[name=remove]').value = true;
+    elm.querySelector('input[name="remove-last"]').value = true;
   }, false);
 }
