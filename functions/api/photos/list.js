@@ -37,14 +37,17 @@ export async function onRequestGet({ request, env }) {
 
   for (let i = 0; i < 10; i++) {
     const key = date.toISOString().split('T')[0];
-    const name = await env.KV.get(`img-${key}`);
     entries.push({
-      key: name,
       date: key,
       cursor: i == 9 ? key : undefined
     });
     date.setDate(date.getDate() - 1);
   }
+
+  await Promise.all(entries.map(async e => ({
+    ...e,
+    key: env.KV.get(`img-${e.date}`)
+  }));
 
   const body = html`
     ${!!futures.length && renderFutures(futures)}
@@ -84,6 +87,10 @@ export async function onRequestGet({ request, env }) {
 function renderFutures(futures) {
   return html`
     <form hx-post="/api/photos/list" hx-trigger="drop" hx-swap="outerHTML">
+      <div class="remove-drop-zone">
+        Remove
+        <input type="hidden" name="remove-last" value="">
+      </div>
       ${futures.map(({ date, key }) => html`
         <li draggable="true">
           <button popovertarget="${date}" type="button">
@@ -97,10 +104,6 @@ function renderFutures(futures) {
           <input type="hidden" name="item" value="${key}">
         </li>
       `)}
-      <div class="remove-drop-zone">
-        Remove
-        <input type=hidden name=remove>
-      </div>
     </form>
   `;
 }
@@ -108,7 +111,7 @@ function renderFutures(futures) {
 export async function onRequestPost({ request, env }) {
   const formData = await request.formData();
 
-  const remove = formData.get('remove');
+  const remove = formData.get('remove-last');
   const items = formData.getAll('item').reverse();
 
   let date = new Date();
