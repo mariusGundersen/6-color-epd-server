@@ -26,9 +26,11 @@
 
 
     const ctx = canvas.getContext('2d');
+
     ctx.webkitImageSmoothingEnabled = false;
     ctx.mozImageSmoothingEnabled = false;
     ctx.imageSmoothingEnabled = false;
+
 
     const w = canvas.width;
     const h = canvas.height;
@@ -50,44 +52,78 @@
     const RGB_GREEN = 0x07E0;// green
 
 
+
+    const colors = [
+      toRGB(0x0000), // black
+      toRGB(0xffff), // white
+      toRGB(0xFFE0),// yellow
+      toRGB(0xF800),// red
+      toRGB(0x001F),// blue
+      toRGB(0x07E0),// green
+    ]
+
     const gradient = ctx.createLinearGradient(0, 0, w, 0);
 
     // Add three color stops
-    gradient.addColorStop(0, "green");
-    gradient.addColorStop(0.5, "cyan");
-    gradient.addColorStop(1, "blue");
+    gradient.addColorStop(0, "#000");
+    //gradient.addColorStop(0.5, "magenta");
+    //gradient.addColorStop(0.5, "#0ff");
+    //gradient.addColorStop(1, "#0ff");
+    gradient.addColorStop(1, "#fff");
 
     // Set the fill style and draw a rectangle
     ctx.fillStyle = gradient;
+    ctx.fillStyle = "#202020";
     ctx.fillRect(0, 0, w, h);
 
+    /*
+        const img = new Image();
+        img.src = "/img.jpeg";
+        await new Promise(r => img.onload = r);
+        ctx.drawImage(img, 0, 0);
+    */
 
-    const img = new Image();
-    img.src = "/img2.jpeg";
-    await new Promise(r => img.onload = r);
-    ctx.drawImage(img, 0, 0);
-
-    const imgData = ctx.getImageData(0, 0, w, h / 2);
-    const rgb = new Uint16Array(w * h);
-    for (let i = 0; i < w * h; i++) {
+    const imgData = ctx.getImageData(0, 0, w, h * 3 / 4);
+    const rgb = new Uint16Array(imgData.width * imgData.height);
+    for (let i = 0; i < rgb.length; i++) {
       const [r, g, b, a] = imgData.data.slice(i * 4, i * 4 + 4);
-      rgb[i] = to16(r >> 3, g >> 2, b >> 3);
+      rgb[i] = to16(r >>> 3, g >>> 2, b >>> 3);
     }
 
-    dither(rgb, w, h / 2);
+    /*
+    for (let i = 0; i < w * h / 4; i++) {
+      const [h, s, v] = rgbToHsv(...toRGB(rgb[i]));
+      rgb[i] = to16(...hsvToRgb(h, Math.min(1, s * 2), Math.min(1, v * 2)));
+    }
+      */
 
-    for (let i = 0; i < w * h; i++) {
+    dither(rgb, w, h / 4, find_closest_palette_color);
+    dither(rgb.subarray(h / 4 * w), w, h / 4, find_closest_palette_color3);
+
+    const palette = {
+      [RGB_BLACK]: 0x0000, // black
+      [RGB_WHITE]: 0xffff, // white
+      [RGB_YELLOW]: 0xFFE0,// yellow
+      [RGB_RED]: 0x7800,// red
+      [RGB_BLUE]: 0x000F,// blue
+      [RGB_GREEN]: 0x03E0,// green
+    }
+
+    for (let i = 0; i < imgData.width * imgData.height; i++) {
       const [r, g, b] = toRGB(rgb[i]);
-      imgData.data[i * 4 + 0] = r << 3;
-      imgData.data[i * 4 + 1] = g << 2;
-      imgData.data[i * 4 + 2] = b << 3;
+      imgData.data[i * 4 + 0] = shiftUp(r, 3);//(r << 3) | (r & 0b111);
+      imgData.data[i * 4 + 1] = shiftUp(g, 2);//(g << 2) | (g & 0b11);
+      imgData.data[i * 4 + 2] = shiftUp(b, 3);//(b << 3) | (b & 0b111);
     }
 
+    function shiftUp(v, l) {
+      return (v << l) | (v & 0b1 ? (2 ** l - 1) : 0)
+    }
 
 
     ctx.putImageData(imgData, 0, 0);
 
-    function dither(pixels, w, h) {
+    function dither(pixels, w, h, find_closest_palette_color) {
       let row = 0;
       for (let y = 0; y < h; y++, row += w) {
         let next_row = row + w;
@@ -95,7 +131,7 @@
 
         for (let x = 0; x < w; x++) {
           let oldpixel = pixels[row + x];
-          let newpixel = find_closest_palette_color(oldpixel, y + x);
+          let newpixel = find_closest_palette_color(oldpixel, x + y);
 
           const errors = toRGB(oldpixel);
           const e = toRGB(newpixel);
@@ -105,36 +141,74 @@
 
           pixels[row + x] = newpixel;
           if (x + 1 < w) {
-            add_error(row + (x + 1), errors, 7);
+            add_error(pixels, row + (x + 1), errors, 7);
           }
 
           if (has_next_row) {
             if (x - 1 >= 0) {
-              add_error(next_row + (x - 1), errors, 3);
+              add_error(pixels, next_row + (x - 1), errors, 3);
             }
 
-            add_error(next_row + (x + 0), errors, 5);
+            add_error(pixels, next_row + (x + 0), errors, 5);
 
             if (x + 1 < w) {
-              add_error(next_row + (x + 1), errors, 1);
+              add_error(pixels, next_row + (x + 1), errors, 1);
             }
           }
         }
       }
 
-      function add_error(i, e, q) {
-
+      function add_error2(pixels, i, e, q) {
         let [r, g, b] = toRGB(pixels[i]);
 
-        r = clamp(r + e[0] * q / 16, 0, RGB_RED_FULL);
-        g = clamp(g + e[1] * q / 16, 0, RGB_GREEN_FULL);
-        b = clamp(b + e[2] * q / 16, 0, RGB_BLUE_FULL);
+        r += Math.floor(e[0] * q / 16);
+        g += Math.floor(e[1] * q / 16);
+        b += Math.floor(e[2] * q / 16);
+
+        const max = Math.max(r, g >>> 1, b);
+        if (max > RGB_RED_FULL) {
+          r = Math.floor(r * RGB_RED_FULL / max);
+          g = Math.floor(g * RGB_GREEN_FULL / (max << 1));
+          b = Math.floor(b * RGB_RED_FULL / max);
+        }
+
+        r = clamp(r, 0, RGB_RED_FULL);
+        g = clamp(g, 0, RGB_GREEN_FULL);
+        b = clamp(b, 0, RGB_BLUE_FULL);
+
+        pixels[i] = to16(r, g, b);
+      }
+
+      function add_error(pixels, i, e, q) {
+        let [r, g, b] = toRGB(pixels[i]);
+
+        r += e[0] * q / 16;
+        g += e[1] * q / 16;
+        b += e[2] * q / 16;
+
+        r = clamp(r, 0, RGB_RED_FULL);
+        g = clamp(g, 0, RGB_GREEN_FULL);
+        b = clamp(b, 0, RGB_BLUE_FULL);
 
         pixels[i] = to16(r, g, b);
       }
     }
 
-    function find_closest_palette_color(pixel, evenOdd) {
+    function find_closest_palette_color(pixel) {
+      let [r, g, b] = toRGB(pixel);
+
+      let best = [0, 0, 0, Infinity];
+      for (let [R, G, B] of colors) {
+        const d = (r - R) ** 2 + ((g >>> 1) - (G >>> 1)) ** 2 + (b - B) ** 2;
+        if (best[3] > d) {
+          best = [R, G, B, d];
+        }
+      }
+
+      return to16(...best);
+    }
+
+    function find_closest_palette_color2(pixel, evenOdd) {
       let [r, g, b] = toRGB(pixel);
 
       if (r < RGB_RED_HALF) {
@@ -149,8 +223,8 @@
             return RGB_GREEN;
           } else {
             // cyan, green, blue or white
-            g = g >> 1;
-            const w = RGB_RED_FULL - r;
+            g = g >>> 1;
+            const w = r + RGB_RED_HALF;
 
             if (g > b) {
               if (g > w) {
@@ -208,7 +282,7 @@
             return RGB_RED;
           } else {
             // magenta: red, blue or white
-            const w = (RGB_GREEN_FULL - g) >> 1;
+            const w = (g + RGB_GREEN_HALF) >>> 1;
             if (r > b) {
               if (r > w) {
                 return RGB_RED;
@@ -228,7 +302,7 @@
               } else if (r === w) {
                 switch (evenOdd % 3) {
                   case 0:
-                    return RGB_GREEN;
+                    return RGB_RED;
                   case 1:
                     return RGB_BLUE
                   case 2:
@@ -270,10 +344,74 @@
       debugger;
     }
 
+    function find_closest_palette_color3(pixel, evenOdd) {
+      let [r, g, b] = toRGB(pixel);
+
+      if (r < RGB_RED_HALF) {
+        if (g < RGB_GREEN_HALF) {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_BLACK;
+          } else {
+            return RGB_BLUE;
+          }
+        } else {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_GREEN;
+          } else {
+            // cyan, green, blue or white
+            g = g >>> 1;
+
+            if (g > b) {
+              return RGB_GREEN;
+            } else if (g === b) {
+              switch (evenOdd % 2) {
+                case 0:
+                  return RGB_GREEN;
+                case 1:
+                  return RGB_BLUE;
+              }
+            } else {
+              return RGB_BLUE;
+            }
+          }
+        }
+      }
+      else {
+        if (g < RGB_GREEN_HALF) {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_RED;
+          } else {
+            // magenta: red, blue or white
+            if (r > b) {
+              return RGB_RED;
+            } else if (r === b) {
+              switch (evenOdd % 2) {
+                case 0:
+                  return RGB_RED;
+                case 1:
+                  return RGB_BLUE;
+              }
+            } else {
+              return RGB_BLUE;
+            }
+          }
+        }
+        else {
+          if (b < RGB_BLUE_HALF) {
+            return RGB_YELLOW;
+          } else {
+            return RGB_WHITE;
+          }
+        }
+      }
+
+      debugger;
+    }
+
     function toRGB(v) {
-      const r = (v >> 11) & RGB_RED_FULL;
-      const g = (v >> 5) & RGB_GREEN_FULL;
-      const b = (v >> 0) & RGB_BLUE_FULL;
+      const r = (v >>> 11) & RGB_RED_FULL;
+      const g = (v >>> 5) & RGB_GREEN_FULL;
+      const b = (v >>> 0) & RGB_BLUE_FULL;
       return [r, g, b];
     }
 
@@ -282,7 +420,41 @@
     }
 
     function clamp(v, min, max) {
-      return v < min ? min : v > max ? max : v;
+      return Math.floor(v < min ? min : v > max ? max : v);
+    }
+
+    function rgbToHsv(r, g, b) {
+      r /= RGB_RED_FULL;
+      g /= RGB_GREEN_FULL;
+      b /= RGB_BLUE_FULL;
+      const cmax = Math.max(r, g, b);
+      const cmin = Math.min(r, g, b);
+      const delta = cmax - cmin;
+      let h = delta === 0 ? 0 :
+        cmax === r ? 60 * (((g - b) / delta) % 6) :
+          cmax === g ? 60 * (((b - r) / delta) + 2) :
+            60 * (((r - g) / delta) + 4);
+      const s = cmax === 0 ? 0 : delta / cmax;
+      const v = cmax;
+
+      while (h < 0) h += 360;
+
+      return [h, s, v];
+    }
+
+    function hsvToRgb(h, s, v) {
+      if (h < 0) throw new Error('h is ' + h)
+      const c = v * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = v - c;
+
+      const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+
+      return [
+        Math.floor((r + m) * RGB_RED_FULL),
+        Math.floor((g + m) * RGB_GREEN_FULL),
+        Math.floor((b + m) * RGB_BLUE_FULL)
+      ];
     }
   </script>
 </body>
