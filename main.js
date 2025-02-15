@@ -1,7 +1,7 @@
 import './dnd.touch.min.js?autoload';
 import './pan-zoom.js';
 
-document.querySelector("input[type=file]").addEventListener('change', e => {
+document.querySelectorAll("input[type=file]").forEach(elm => elm.addEventListener('change', e => {
   const file = e.currentTarget.files[0];
 
   const img = document.querySelector('pan-zoom');
@@ -15,7 +15,7 @@ document.querySelector("input[type=file]").addEventListener('change', e => {
   const dialog = document.querySelector('dialog');
 
   dialog.showModal();
-});
+}));
 
 document.querySelector('button[type=submit]').addEventListener('click', async e => {
   const button = e.currentTarget;

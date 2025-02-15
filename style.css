@@ -63,7 +63,7 @@ body {
           animation: spin 1s infinite steps(12, start);
         }
       }
-      
+
       > button {
         border: none;
         margin: 0;
@@ -125,7 +125,7 @@ body {
 .htmx-request .drag-handle svg {
   opacity: 0.5;
 }
- 
+
 dialog[open] {
   padding: 0;
   border: none;
@@ -140,12 +140,25 @@ dialog[open] {
 
   form {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
 
-    button {
+    button,
+    label {
+      input {
+        display: none;
+      }
       border: none;
-      height: 3em;
       font-weight: bold;
+      display: flex;
+      place-content: center;
+      margin: 0;
+      padding: 1rem 0;
+      background: #333;
+      color: lightgreen;
+
+      &:hover {
+        background: #444;
+      }
 
       &:focus {
         outline: none;
@@ -172,7 +185,6 @@ pan-zoom {
   }
 }
 
-
 .remove-drop-zone {
   position: fixed;
   bottom: 0;
@@ -189,12 +201,13 @@ pan-zoom {
   .dragging & {
     display: block;
   }
- }
+}
 
-    @keyframes spin { 
-        from { 
-            transform: rotate(0deg); 
-        } to { 
-            transform: rotate(360deg); 
-        }
-    }
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
