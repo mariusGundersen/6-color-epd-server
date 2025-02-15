@@ -11,6 +11,22 @@ class PanZoom extends HTMLElement {
             s: 1
         };
 
+        this.limits = {
+            view: {
+                x: 0,
+                y: 0,
+                width: 480,
+                height: 800
+            },
+            model: {
+                x: 0,
+                y: 0,
+                width: 480,
+                height: 800
+            },
+            maxS: 100
+        };
+
         const src = this.getAttribute('src');
         this.canvas = document.createElement('canvas');
         this.canvas.width = 480;
@@ -21,7 +37,7 @@ class PanZoom extends HTMLElement {
         this.style.touchAction = 'none';
 
         const requestSingleAnimationFrame = debouncedAnimationFrame(() => {
-            this.transform = solve(this.transform, ...pointers.values());
+            this.transform = solve(this.transform, [...pointers.values()], this.limits);
         });
 
         this.addEventListener('pointerdown', e => {
@@ -54,8 +70,7 @@ class PanZoom extends HTMLElement {
             const modelPos = viewToModel(viewPos, this.transform);
             let s = this.transform.s;
             s *= e.deltaY > 0 ? 1 / SCROLL_FACTOR : SCROLL_FACTOR;
-            s = Math.max(0.1, Math.min(s, 100));
-            this.transform = solveSingle(viewPos, modelPos, s);
+            this.transform = solveSingle(viewPos, modelPos, s, this.limits);
             e.preventDefault();
         })
     }
@@ -76,6 +91,8 @@ class PanZoom extends HTMLElement {
                     y: this.canvas.height / 2 - this._img.height * this.minS / 2,
                     s: this.minS
                 };
+                this.limits.model.width = this._img.width;
+                this.limits.model.height = this._img.height;
             });
         }
     }
@@ -85,11 +102,7 @@ class PanZoom extends HTMLElement {
     }
 
     set transform({ x, y, s }) {
-        if (this._img) {
-            s = Math.max(s, this.minS);
-            x = Math.min(0, Math.max(x, this.canvas.width - this._img.width * s));
-            y = Math.min(0, Math.max(y, this.canvas.height - this._img.height * s));
-        }
+
         this._transform.x = x;
         this._transform.y = y;
         this._transform.s = s;
@@ -111,7 +124,7 @@ customElements.define("pan-zoom", PanZoom);
  */
 
 /**
- * 
+ *
  * @param {PointerEvent} event
  * @returns {Pos}
  */
@@ -119,15 +132,15 @@ function getViewPos(event) {
     const rect = event.currentTarget.getBoundingClientRect();
 
     return {
-        x: event.clientX - rect.x,
-        y: event.clientY - rect.y
+        x: (event.clientX - rect.x),
+        y: (event.clientY - rect.y)
     };
 }
 
 /**
- * 
- * @param {Pos} modelPos 
- * @param {Transform} transform 
+ *
+ * @param {Pos} modelPos
+ * @param {Transform} transform
  * @returns {Pos}
  */
 function modelToView(modelPos, transform) {
@@ -138,9 +151,9 @@ function modelToView(modelPos, transform) {
 }
 
 /**
- * 
- * @param {Pos} viewPos 
- * @param {Transform} transform 
+ *
+ * @param {Pos} viewPos
+ * @param {Transform} transform
  * @returns {Pos}
  */
 function viewToModel(viewPos, transform) {
@@ -150,48 +163,92 @@ function viewToModel(viewPos, transform) {
     };
 }
 
+const avgPos = (a, b, _, { length }) => ({
+    x: a.x + b.x / length,
+    y: a.y + b.y / length
+});
+
 /**
- * 
- * @param {Transform} transform 
- * @param {PosPos[]} positions 
+ *
+ * @param {Transform} transform
+ * @param {PosPos[]} positions
  * @returns {Transform}
  */
-function solve(transform, ...positions) {
+function solve(transform, positions, limits) {
     if (positions.length === 1) {
         const { viewPos, modelPos } = positions[0];
 
-        return solveSingle(viewPos, modelPos, transform.s);
+        transform = solveSingle(viewPos, modelPos, transform.s, limits);
     } else if (positions.length > 1) {
         transform = solveMultiple(positions);
 
-        for (const position of positions) {
-            position.modelPos = viewToModel(position.viewPos, transform);
-        }
+        const avgView = positions.map(p => p.viewPos).reduce(avgPos, { x: 0, y: 0 });
+        const avgModel = positions.map(p => p.modelPos).reduce(avgPos, { x: 0, y: 0 });
 
-        return transform;
-    } else {
-        return transform;
+        transform = solveSingle(avgView, avgModel, transform.s, limits);
     }
+
+
+    for (const position of positions) {
+        position.modelPos = viewToModel(position.viewPos, transform);
+    }
+
+    return transform;
+
+}
+
+
+const defaultView = {
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1
+};
+
+const defaultModel = {
+    x: Infinity,
+    y: Infinity,
+    width: Infinity,
+    height: Infinity
 }
 
 /**
- * 
+ *
  * @param {Pos} viewPos
- * @param {Pos} modelPos 
- * @param {number} s 
+ * @param {Pos} modelPos
+ * @param {number} s
  * @returns {Transform}
  */
-function solveSingle(viewPos, modelPos, s) {
+function solveSingle(viewPos, modelPos, s, { view = defaultView, model = defaultModel, sMax = Infinity } = {}) {
+
+    s = Math.max(
+        Math.min(s, sMax),
+        view.width / model.width,
+        view.height / model.height
+    );
+
     return {
-        x: viewPos.x - modelPos.x * s,
-        y: viewPos.y - modelPos.y * s,
+        x: clamp(
+            (view.x + view.width) - (model.x + model.width) * s,
+            viewPos.x - modelPos.x * s,
+            view.x - model.x * s
+        ),
+        y: clamp(
+            (view.y + view.height) - (model.y + model.height) * s,
+            viewPos.y - modelPos.y * s,
+            view.y - model.y * s
+        ),
         s
     };
 }
 
+function clamp(min, v, max) {
+    return Math.max(min, Math.min(v, max));
+}
+
 /**
- * 
- * @param {PosPos[]} positions 
+ *
+ * @param {PosPos[]} positions
  * @returns {Transform}
  */
 function solveMultiple(positions) {
@@ -241,17 +298,17 @@ function solveMultiple(positions) {
 }
 
 /**
- * 
+ *
  * @param {Transform} transform
- * @returns {string} 
+ * @returns {string}
  */
 function toMatrix({ x, y, s }) {
     return `matrix(${s}, 0, 0, ${s}, ${x}, ${y})`;
 }
 
 /**
- * 
- * @param {() => void} func 
+ *
+ * @param {() => void} func
  * @returns {() => void}
  */
 function debouncedAnimationFrame(func) {
