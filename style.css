@@ -152,6 +152,7 @@ dialog[open] {
       display: flex;
       place-content: center;
       margin: 0;
+      font-size: 1rem;
       padding: 1rem 0;
       background: #333;
       color: lightgreen;
