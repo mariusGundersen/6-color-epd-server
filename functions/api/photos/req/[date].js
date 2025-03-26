@@ -25,6 +25,7 @@ export async function onRequestGet({ request, env, params }) {
         <th>Who</th>
         <th>Time</th>
         <th>Battery</th>
+        <th>Version</th>
       </tr>
       ${reqs
       .sort((a, b) => a.who.localeCompare(b.who))
@@ -34,6 +35,7 @@ export async function onRequestGet({ request, env, params }) {
                   <td>${r.who}</td>
                   <td>${r.time}</td>
                   <td>${r.battery.voltage} V</td>
+                  <td>${r.version}</td>
                 </tr>`
       )}
     </table>
