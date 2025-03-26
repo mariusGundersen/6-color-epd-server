@@ -53,6 +53,7 @@ body {
       color: white;
       height: 100%;
       overflow: hidden auto;
+      font-size: 0.8em;
 
       &.htmx-indicator {
         order: 1;
